@@ -1,0 +1,175 @@
+/* General Page Layout */
+.login-page {
+  background: linear-gradient(to bottom, #f8fbff, #e9f1ff);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 🔥 Removes vertical & horizontal scrollbar */
+}
+
+/* Navbar */
+.navbar {
+  width: 100%;
+  padding: 1.2rem 5vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  animation: fadeUp 0.8s ease-out;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navbar-logo {
+  width: 40px;
+}
+
+.navbar-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.navbar-title {
+  font-weight: 800;
+  color: #003366;
+  font-size: 18px;
+}
+
+.navbar-subtitle {
+  font-size: 12px;
+  color: #6b6b6b;
+  margin-top: 2px;
+}
+
+
+.login-container {
+  padding-top: 10px;
+  padding-bottom: 20px;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* keeps card slightly lower instead of centered */
+}
+
+.login-card {
+  background: #fff;
+  padding: 15px 50px;
+  border-radius: 16px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  width: 360px;
+  text-align: center;
+  margin-top: 30px;   /* ✅ Add this */
+}
+
+.login-logo {
+  width: 90px;
+  margin-bottom: 0px;
+}
+
+h2 {
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 6px;
+}
+
+.login-subtitle {
+  color: #555;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+input[type="email"],
+input[type="password"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.login-options a {
+  font-size: 13px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.continue-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.continue-btn:hover {
+  background: #005dc1;
+}
+
+.signup-text {
+  margin-top: 15px;
+  font-size: 13px;
+}
+
+.signup-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+/* Footer */
+.login-footer {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 5px;
+}
+
+.login-footer a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+hr {
+  margin: 25px 0 10px;
+  border: 0;
+  border-top: 1px solid #ddd;
+}
+
+.back-link {
+  font-size: 13px;
+  color: #007bff;
+  text-decoration: none;
+}
