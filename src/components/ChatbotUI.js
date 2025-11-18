@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";  
 import "./ChatbotUI.css";
-import { FaMicrophone, FaUserCircle, FaSun, FaMoon, FaHistory } from "react-icons/fa";
+import { FaMicrophone, FaUserCircle, FaSun, FaMoon, FaHistory, FaTimes, FaRedo } from "react-icons/fa";
 
 function ChatbotUI() {
   const [showWelcome, setShowWelcome] = useState(true);
 
+  const [audioLevels, setAudioLevels] = useState(new Array(20).fill(0));
 
   // ✅ Required for navigation (Logout)
   const navigate = useNavigate(); 
@@ -15,6 +16,7 @@ function ChatbotUI() {
     navigate("/login"); // go back to login page
   };
 
+  const [language, setLanguage] = useState("en");
   const [darkMode, setDarkMode] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [listening, setListening] = useState(false);
@@ -22,10 +24,24 @@ function ChatbotUI() {
     { sender: "bot", text: "Hello! I’m Auralis. How can I assist you today?" },
   ]);
 
+  const handleResetChat = () => {
+  setMessages([
+    { sender: "bot", text: "Hello! I’m Auralis. How can I assist you today?" }
+  ]);
+  setShowWelcome(true);
+};
+
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, [messages]);
+
+
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
-
-  
 
   useEffect(() => {
     const SpeechRecognition =
@@ -34,6 +50,7 @@ function ChatbotUI() {
       alert("Sorry, your browser doesn’t support speech recognition.");
       return;
     }
+
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
@@ -76,10 +93,45 @@ function ChatbotUI() {
   }, []);
 
   const startListening = () => {
-    if (recognitionRef.current && !listening) {
-      recognitionRef.current.start();
-    }
-  };
+  if (!recognitionRef.current || listening) return;
+
+  recognitionRef.current.start();
+
+  // 🎤 Audio waveform analyzer
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+    const analyser = audioContext.createAnalyser();
+
+    source.connect(analyser);   // ← REQUIRED
+
+    analyser.fftSize = 256;
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const animate = () => {
+      analyser.getByteFrequencyData(dataArray);
+
+      // Convert raw frequency data → simplified bar levels
+      const levels = Array.from({ length: 20 }, (_, i) => {
+        const slice = dataArray.slice(i * 5, i * 5 + 5);
+        return Math.max(...slice) / 255; // normalize 0–1
+      });
+
+      setAudioLevels(levels);
+
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    // Stop waveform when listening stops
+    recognitionRef.current.onend = () => {
+      setListening(false);
+      setAudioLevels(new Array(20).fill(0));
+      stream.getTracks().forEach(track => track.stop());
+    };
+  });
+};
 
   const stopListening = () => {
     if (recognitionRef.current) {
@@ -127,11 +179,17 @@ function ChatbotUI() {
           <button>
             <FaHistory /> Chat History
           </button>
+
+          <button onClick={handleResetChat}>
+            <FaRedo /> Reset Chat
+          </button>
         </div>
       )}
     </div>
   </div>
 </header>
+
+
 
       {/* Chat Section */}
       <main className="chat-container">
@@ -158,17 +216,34 @@ function ChatbotUI() {
       <p className="welcome-subtitle">
         I'm your <strong>IDC AI Assistant.</strong> Click the microphone to start speaking!
       </p>
+<div className="language-switch">
+  <button
+    className={`lang-btn ${language === "en" ? "active" : ""}`}
+    onClick={() => setLanguage("en")}
+  >
+    English
+  </button>
 
+  <button
+    className={`lang-btn ${language === "ar" ? "active" : ""}`}
+    onClick={() => setLanguage("ar")}
+  >
+    Arabic
+  </button>
+</div>
     </div>
   )}
 
 
   {/* ----------- CHAT SCREEN (only after speaking) ----------- */}
+
+  
   {!showWelcome && (
     <div className="chatbox-wrapper">
+      
       <div className="chatbox-header">Auralis</div>
 
-      <div className="chat-messages">
+      <div className="chat-messages" padding="30px 40px">
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -179,40 +254,63 @@ function ChatbotUI() {
             {msg.text}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
+      <div className="chat-language-switch">
+  <button
+    className={`chat-lang-btn ${language === "en" ? "active" : ""}`}
+    onClick={() => setLanguage("en")}
+  >
+    English
+  </button>
+
+  <button
+    className={`chat-lang-btn ${language === "ar" ? "active" : ""}`}
+    onClick={() => setLanguage("ar")}
+  >
+    Arabic
+  </button>
+</div>
     </div>
   )}
 
 
   {/* Microphone stays always */}
-  <div className="mic-container">
-  {/* MIC START BUTTON */}
-  <button
-    className={`mic-btn ${listening ? "pulse" : ""}`}
-    onClick={startListening}
-    title={listening ? "Listening..." : "Click to speak"}
-  >
-    <FaMicrophone className="mic-icon" />
-  </button>
-
-  {/* STOP BUTTON – ONLY SHOW WHEN LISTENING */}
-  {listening && (
-    <button
-      className="stop-btn"
-      onClick={stopListening}
-      title="Stop listening"
-    >
-      ✖
-    </button>
-  )}
-
-  <p className="mic-tip">
-    {listening
-      ? "🎤 Listening... will stop automatically after 5s of silence or manually."
-      : "💡 Tip: Click the mic button to speak your message"}
-  </p>
+  <div className="mic-wrapper">
+    <div className="waveform">
+  {audioLevels.map((level, i) => (
+    <div
+      key={i}
+      className="wave-bar"
+      style={{ height: `${level === 0 ? 0 : level * 40}px` }} // Dynamic bar height
+    ></div>
+  ))}
 </div>
 
+  <div className="mic-row">
+    {/* Mic Button */}
+    <button
+      className={`mic-btn ${listening ? "pulse" : ""}`}
+      onClick={listening ? stopListening : startListening}
+    >
+      <FaMicrophone size={28} />
+    </button>
+
+    {/* Stop Button */}
+    {listening && (
+      <button className="stop-btn" onClick={stopListening}>
+        <FaTimes size={22} />
+      </button>
+    )}
+  </div>
+
+  {/* Tip text */}
+  {listening && (
+    <div className={`mic-tip ${listening ? "visible" : "hidden"}`}>
+  🎙️ Listening... will stop automatically after 5s of silence or manually.
+  </div>
+  )}
+</div>
 </main>
     </div>
   );
